@@ -3,11 +3,10 @@
 import { useChat } from '@ai-sdk/react';
 
 export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat();
+  const { messages, input, handleInputChange, handleSubmit } = useChat({maxSteps: 6});
 
   return (
     <div className="flex flex-col w-full max-w-md py-24 mx-auto">
-      {/* Chat Messages */}
       <div className="flex flex-col space-y-4 px-4">
         {messages.map((message) => (
           <div
@@ -19,21 +18,27 @@ export default function Chat() {
             <div
               className={`p-3 rounded-lg text-white max-w-xs md:max-w-sm shadow-md ${
                 message.role === "user"
-                  ? "bg-blue-500 text-right" // User messages on the right
-                  : "bg-gray-700 text-left" // AI messages on the left
+                  ? "bg-blue-500 text-right" 
+                  : "bg-gray-700 text-left"
               }`}
             >
-              {message.parts.map((part, i) => (
-                <div key={`${message.id}-${i}`} className="whitespace-pre-wrap">
-                  {part.text}
-                </div>
-              ))}
+              {message.parts.map((part, i) => {
+                switch(part.type){
+                  case 'text':
+                    return <div key={`${message.id}-${i}`} className="whitespace-pre-wrap">
+                        {part.text}
+                      </div>
+                  case 'tool-invocation':
+                    return <pre key={`${message.id}-${i}`}>
+                    {JSON.stringify(part.toolInvocation, null, 2)}
+                  </pre>
+                }
+                })}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Chat Input */}
       <form onSubmit={handleSubmit} className="fixed bottom-0 w-full max-w-md mx-auto p-4 bg-white dark:bg-zinc-900">
         <div className="flex items-center border border-zinc-300 dark:border-zinc-800 rounded-lg shadow-md">
           <input
